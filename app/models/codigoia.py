@@ -20,8 +20,13 @@ _scaler = None
 _encoder = None
 _training_columns = None # To store the exact column order and names after one-hot encoding
 
-def train_model(file_path="Base de datos para el PP (actualizada).xlsx"):
+def train_model(file_path=None):
     global _model, _scaler, _encoder, _training_columns
+    
+    # Ruta corregida - busca el archivo en app/data/
+    if file_path is None:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(current_dir, '..', 'data', 'Base de datos para el PP (actualizada).xlsx')
     
     if not os.path.exists(file_path):
         print(f"Advertencia: No se encontró el archivo {file_path}. El modelo no se entrenará.")

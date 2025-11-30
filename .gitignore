@@ -1,0 +1,26 @@
+# Entorno virtual
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# Archivos de entorno  
+.env
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+
+# Carpeta DB
+data/
+
+# Archivos específicos  de la database por extensión
+*.json
+*.xlsx
+*.xls

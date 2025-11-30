@@ -6,7 +6,14 @@ from Crypto.Util.Padding import unpad
 import base64
 import json
 import os
-import codigoia # Import the AI module
+from app.models import codigoia
+from app import app
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+# Luego usas:
+# codigoia.train_model()
+# codigoia.predict_candidate()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes

@@ -365,7 +365,7 @@
       <div class="hero-left">
         <div class="kicker">Plataforma</div>
         <h2 class="hero-title">Reclutamiento docente con seguridad y estilo</h2>
-        <p class="hero-sub">Crea perfiles, registra aspirantes y protege tus datos.
+        <p class="hero-sub">Crea perfiles, registra aspirantes y protege tus datos.</p>
 
         <div class="cta-row">
           <button class="cta-primary" onclick="scrollToSection('section-register')">Registrar ahora</button>
@@ -471,7 +471,6 @@
         <button class="submit" style="font-size:18px; padding:16px 32px;" onclick="submitFullProfile()">Registrar Perfil
           Completo</button>
         <div id="main-msg" style="margin-top:12px;font-size:16px;color:var(--muted)"></div>
-      </div>
       </div>
     </section>
 
@@ -602,31 +601,7 @@
     }
 
     /* ---------------------------
-       Light/Dark-ish toggle (invert to light)
-       --------------------------- */
-    let lightMode = false;
-    function toggleMode() {
-      lightMode = !lightMode;
-      const btn = document.getElementById('modeBtn');
-      if (lightMode) {
-        document.documentElement.style.setProperty('--guinda', '#8b0000');
-        document.documentElement.style.setProperty('--guinda-2', '#ff6f88');
-        document.body.style.background = 'linear-gradient(180deg,#fff0f2,#ffeef0 60%, #fff)';
-        document.body.style.color = '#000';
-        btn.innerText = 'Modo Oscuro';
-      } else {
-        document.documentElement.style.setProperty('--guinda', '#a10028');
-        document.documentElement.style.setProperty('--guinda-2', '#ff4661');
-        document.body.style.background = 'linear-gradient(180deg, #03040a 0%, #0b0710 45%, #070307 100%)';
-        document.body.style.color = '#fff';
-        btn.innerText = 'Modo Claro';
-      }
-    }
-
-    /* ---------------------------
-       FORM SUBMIT stubs (connect to your Flask endpoints)
-       - These functions prepare JSON payloads.
-       - Currently they POST to /register (server must implement RSA or plain save).
+       FORM SUBMIT - VERSIÓN SIMPLIFICADA SIN CRYPTO
        --------------------------- */
     async function submitFullProfile() {
       const nombre = document.getElementById('f-nombre').value.trim();
@@ -647,16 +622,14 @@
 
       const msgEl = document.getElementById('main-msg');
 
-      if (!nombre || !apellidos) { msgEl.innerText = 'Por favor ingresa Nombre y Apellidos.'; return; }
+      if (!nombre || !apellidos) { 
+        msgEl.innerText = 'Por favor ingresa Nombre y Apellidos.'; 
+        return; 
+      }
       msgEl.innerText = 'Enviando perfil completo...';
 
       try {
-        // 1. Get Public Key
-        const keyRes = await fetch('http://127.0.0.1:5000/public-key');
-        const keyJson = await keyRes.json();
-        const publicKey = keyJson.publicKey;
-
-        // 2. Prepare Data
+        // 🚀 DATOS DIRECTOS SIN ENCRIPTACIÓN
         const rawData = {
           "Nombre": nombre,
           "Apellidos": apellidos,
@@ -674,74 +647,27 @@
           "Nivel": nivel
         };
 
-        // 3. Encrypt with Hybrid Encryption
-        const encryptedPayload = await encryptHybrid(rawData, publicKey);
-
-        // 4. Send to Backend
+        // 🚀 ENVÍO DIRECTO AL BACKEND
         const res = await fetch('http://127.0.0.1:5000/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(encryptedPayload)
+          body: JSON.stringify(rawData)
         });
 
         const j = await res.json();
         if (res.ok) {
           msgEl.innerText = 'Perfil registrado correctamente. ID: ' + j.id;
-          // Optional: Clear forms
+          // Limpiar formulario opcional
+          document.getElementById('f-nombre').value = '';
+          document.getElementById('f-apellidos').value = '';
+          // ... limpiar otros campos si quieres
+        } else { 
+          msgEl.innerText = j.msg || 'Error en servidor'; 
         }
-        else { msgEl.innerText = j.msg || 'Error en servidor'; }
       } catch (err) {
         msgEl.innerText = 'Error: ' + err.message;
         console.error(err);
       }
-    }
-
-    // --- Hybrid Encryption Helpers ---
-
-    async function encryptHybrid(dataObj, publicKeyPem) {
-      // A. Generate AES Key (256-bit)
-      const aesKey = await window.crypto.subtle.generateKey(
-        { name: "AES-GCM", length: 256 },
-        true,
-        ["encrypt", "decrypt"]
-      );
-
-      // B. Export AES Key to raw bytes
-      const rawKey = await window.crypto.subtle.exportKey("raw", aesKey);
-      const keyBase64 = arrayBufferToBase64(rawKey);
-
-      // C. Encrypt AES Key with RSA (using JSEncrypt)
-      const encrypt = new JSEncrypt();
-      encrypt.setPublicKey(publicKeyPem);
-      const encryptedKey = encrypt.encrypt(keyBase64);
-      if (!encryptedKey) throw new Error("RSA Encryption of AES key failed");
-
-      // D. Encrypt Data with AES-GCM
-      const iv = window.crypto.getRandomValues(new Uint8Array(12)); // 12 bytes IV for GCM
-      const enc = new TextEncoder();
-      const encodedData = enc.encode(JSON.stringify(dataObj));
-
-      const encryptedDataBuffer = await window.crypto.subtle.encrypt(
-        { name: "AES-GCM", iv: iv },
-        aesKey,
-        encodedData
-      );
-
-      return {
-        key: encryptedKey,
-        iv: arrayBufferToBase64(iv),
-        data: arrayBufferToBase64(encryptedDataBuffer)
-      };
-    }
-
-    function arrayBufferToBase64(buffer) {
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      const len = bytes.byteLength;
-      for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return window.btoa(binary);
     }
   </script>
 

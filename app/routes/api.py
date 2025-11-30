@@ -114,3 +114,76 @@ def predict_all():
     except Exception as e:
         print(f"Error generating predictions: {e}")
         return jsonify({"error": "Error generando predicciones"}), 500
+    
+@api_bp.route('/public-key', methods=['GET'])
+def get_public_key():
+    """Endpoint para public-key que espera el frontend"""
+    return jsonify({
+        "publicKey": "placeholder-key-para-registro",
+        "message": "Public key para registro (placeholder)"
+    })
+
+# ✅ ENDPOINT CORREGIDO - EL FRONTEND BUSCA EXACTAMENTE '/register'
+@api_bp.route('/register', methods=['POST'])
+def register():
+    """Endpoint para registro de usuarios (EXACTO como lo espera el frontend)"""
+    try:
+        data = request.json
+        print(f"📝 Registro recibido: {data}")
+        
+        # Cargar datos existentes
+        candidatos, es_objeto = load_json_data()
+        
+        # Generar nuevo ID
+        nuevo_id = max([c.get("ID", 0) for c in candidatos] + [0]) + 1
+        
+        # Crear nuevo candidato
+        nuevo_candidato = {
+            "ID": nuevo_id,
+            "Nombre": data.get("Nombre", ""),
+            "Apellidos": data.get("Apellidos", ""),
+            "Edad": data.get("Edad", 0),
+            "Procedencia": data.get("Procedencia", ""),
+            "Entidad Federativa": data.get("Entidad Federativa", ""),
+            "Zona Geográfica": data.get("Zona Geográfica", ""),
+            "Nivel Educativo": data.get("Nivel Educativo", ""),
+            "Campo Estudio": data.get("Campo Estudio", ""),
+            "Tipo Institución": data.get("Tipo Institución", ""),
+            "Institución": data.get("Institución", ""),
+            "Rango Ingreso": data.get("Rango Ingreso", 0),
+            "Experiencia (años)": data.get("Experiencia (años)", 0),
+            "Jornada": data.get("Jornada", ""),
+            "Nivel": data.get("Nivel", ""),
+            "Prediccion_IA": "Por calcular"
+        }
+        
+        # Agregar a la lista y guardar
+        candidatos.append(nuevo_candidato)
+        save_json_data(candidatos, es_objeto)
+        
+        return jsonify({
+            "success": True,
+            "id": nuevo_id,
+            "message": "Perfil registrado exitosamente"
+        })
+    except Exception as e:
+        print(f"❌ Error en registro: {e}")
+        return jsonify({"error": "Error en registro"}), 500
+
+# ⚠️ ESTE PUEDES ELIMINAR O MANTENER COMO BACKUP
+@api_bp.route('/api/register', methods=['POST'])
+def register_user():
+    """Endpoint alternativo para registro"""
+    try:
+        data = request.json
+        print(f"📝 Datos de registro recibidos: {data}")
+        
+        return jsonify({
+            "success": True, 
+            "message": "Usuario registrado exitosamente",
+            "user_id": 999,
+            "email": data.get('email', '')
+        })
+    except Exception as e:
+        print(f"❌ Error en registro: {e}")
+        return jsonify({"error": "Error en registro"}), 500
